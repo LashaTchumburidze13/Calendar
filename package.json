@@ -1,0 +1,21 @@
+{
+  "dependencies": {
+    "bundler": "^0.8.0",
+    "date-fns": "^2.30.0",
+    "fns": "^1.0.0",
+    "parcel": "^2.9.3",
+    "parcel-bundler": "^1.12.5",
+    "save-dev": "^0.0.1-security"
+  },
+  "name": "expandproject",
+  "version": "1.0.0",
+  "main": "script.js",
+  "scripts": {
+    "start": "parcel index.html",
+    "build": "parcel build index.html"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": ""
+}
