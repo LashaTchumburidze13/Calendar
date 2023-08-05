@@ -1,70 +1,91 @@
-import {addMonths, eachDayOfInterval, endOfMonth, endOfWeek, format, fromUnixTime, getUnixTime, isSameDay, isSameMonth, startOfMonth, startOfWeek, subMonths} from 'date-fns'
 
 
+export default function setup(onDragComplete){
+document.addEventListener('mousedown', e => {
+    if(!e.target.matches('[data-draggable]')) return
+   
+    const selectedItem = e.target
+    const itemClone = selectedItem.cloneNode(true)
+    const ghost = selectedItem.cloneNode(true)
+renderItems(itemClone,selectedItem,ghost,e)
+renderEvents(itemClone,selectedItem,ghost,onDragComplete)
 
-const datePickerbutton = document.querySelector('.date-picker-button')
-const datePicker = document.querySelector('.date-picker')
-const currentMonth = document.querySelector('.current-month')
-const prevButton = document.querySelector('.prev')
-const nextButton = document.querySelector('.next')
-const grid = document.querySelector('.date-picker-grid-dates')
-let currentTime = new Date()
 
-datePickerbutton.addEventListener('click', () => {
- datePicker.classList.toggle('show')
-
-  const selectedDate = fromUnixTime(datePickerbutton.dataset.itemId)
-  setDateMonth(selectedDate)
-  createGrid(selectedDate)
 })
-
-function setDate(date){
-    datePickerbutton.innerText = format(date, 'MMMM - yyyy')
-    datePickerbutton.dataset.itemId = getUnixTime(date)
-    console.log(datePickerbutton)
-}
-
-function setDateMonth(selectedDate){
-    currentMonth.innerText = format(selectedDate, "MMMM - yyyy")
 }
 
 
-nextButton.addEventListener('click', () => {
-   currentTime = addMonths(currentTime,1)
-   setDateMonth(currentTime)
-})
 
 
-prevButton.addEventListener('click', () => {
-    currentTime = subMonths(currentTime,1)
-    setDateMonth(currentTime)
-})
+function renderItems(itemClone,selectedItem,ghost,e){
+    const originalRect = selectedItem.getBoundingClientRect()
+    selectedItem.classList.add('hide')
+    itemClone.classList.add('dragging')
+    document.body.append(itemClone)
+    positionItems(itemClone,e)
+ 
+ ghost.classList.add('ghost')
+ ghost.style.height = `${originalRect.height}px`
+ ghost.innerHTML = ''
+ selectedItem.parentElement.insertBefore(ghost,selectedItem)
+ 
+}
 
+function renderEvents(itemClone,selectedItem,ghost,onDragComplete){
 
-function createGrid(selectedDate){
-    const strtweek = startOfWeek(startOfMonth(currentTime))
-    const endweek = endOfWeek(endOfMonth(currentTime))
-
-    const gridDates = eachDayOfInterval({start:strtweek, end:endweek})
-    grid.innerHTML = ''
-    gridDates.forEach(date => {
-        const gridElement = document.createElement('button')
-        gridElement.innerText = date.getDate()
-        gridElement.classList.add('date')
-        if(!isSameMonth(date,currentTime)){
-            gridElement.classList.add('date-picker-other-month-date')
-        }
-        if(isSameDay(date,selectedDate)){
-            gridElement.classList.add('selected')
-        }
-         gridElement.addEventListener('click', () => {
-            setDate(date)
-            datePicker.classList.remove('show')
-            gridElement.classList.add('selected')
-         })
-
-        grid.appendChild(gridElement)
+    const moveFunction = e => {
+        const dropZone = getDropZone(e.target)
+    if(dropZone == null) return
+    const closestDrop = Array.from(dropZone.children).find(child => {
+        const rect = child.getBoundingClientRect()
+        return e.clientY < rect.top + rect.height / 2
     })
+
+
+
+    if(closestDrop != null){
+        dropZone.insertBefore(ghost,closestDrop)
+    }else{
+        dropZone.append(ghost)
+    }
+        positionItems(itemClone,e)
+
+    }
+
+
+    document.addEventListener('mousemove',moveFunction)
+    document.addEventListener('mouseup', () => {
+        document.removeEventListener('mousemove', moveFunction)
+        selectedItem.classList.remove('hide')
+        
+const dropZone = getDropZone(ghost)
+if(dropZone){
+    onDragComplete({
+        startZone: getDropZone(selectedItem),
+        endZone: dropZone,
+        dragElement:selectedItem,
+        index:Array.from(dropZone.children).indexOf(ghost)
+
+    })
+    dropZone.insertBefore(selectedItem,ghost)
+}
+        itemClone.remove()
+        ghost.remove()
+        console.log('up')
+    },{once:true})
 }
 
-setDate(new Date())
+
+function getDropZone(element){
+    if(element.matches('[data-dropzone]')){
+        return element
+    }else{
+        return element.closest('[data-dropzone]')
+    }
+}
+
+
+function positionItems(itemClone,e){
+    itemClone.style.top = `${e.clientY}px`
+    itemClone.style.left = `${e.clientX}px`
+}

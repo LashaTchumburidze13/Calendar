@@ -5,7 +5,8 @@
     "fns": "^1.0.0",
     "parcel": "^2.9.3",
     "parcel-bundler": "^1.12.5",
-    "save-dev": "^0.0.1-security"
+    "save-dev": "^0.0.1-security",
+    "uuid": "^9.0.0"
   },
   "name": "expandproject",
   "version": "1.0.0",
